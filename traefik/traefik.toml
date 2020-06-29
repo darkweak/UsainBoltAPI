@@ -1,0 +1,22 @@
+[providers.docker]
+  endpoint = "unix:///var/run/docker.sock"
+
+[api]
+  insecure = true
+  dashboard = true
+  debug = true
+
+[entryPoints.web]
+  address = ":80"
+  [entryPoints.web.http]
+    [entryPoints.web.http.redirections]
+      [entryPoints.web.http.redirections.entryPoint]
+        to = "web-secure"
+        scheme = "https"
+
+[entryPoints.web-secure]
+  address = ":443"
+
+[certificatesResolvers.sample.acme]
+  email = "youremail@domain.com"
+  storage = "acme.json"

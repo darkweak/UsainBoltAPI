@@ -1,0 +1,38 @@
+version: '3.4'
+services:
+  admin:
+    labels:
+      - traefik.http.routers.admin-${RANDOM_UNIQUE_KEY}.entrypoints=web-secure
+      - traefik.http.routers.admin-${RANDOM_UNIQUE_KEY}.rule=Host(`admin.${DOMAIN_NAME}`)
+      - traefik.http.routers.admin-${RANDOM_UNIQUE_KEY}.tls=true
+      - traefik.http.routers.admin-${RANDOM_UNIQUE_KEY}.tls.domains[0].main=${DOMAIN_NAME}
+      - traefik.http.routers.admin-${RANDOM_UNIQUE_KEY}.tls.domains[0].sans=*.${DOMAIN_NAME}
+      - traefik.http.routers.admin-${RANDOM_UNIQUE_KEY}.tls.certresolver=sample
+
+  api:
+    labels:
+      - traefik.http.routers.api-${RANDOM_UNIQUE_KEY}.entrypoints=web-secure
+      - traefik.http.routers.api-${RANDOM_UNIQUE_KEY}.rule=Host(`api.${DOMAIN_NAME}`)
+      - traefik.http.routers.api-${RANDOM_UNIQUE_KEY}.tls=true
+      - traefik.http.routers.api-${RANDOM_UNIQUE_KEY}.tls.domains[0].main=${DOMAIN_NAME}
+      - traefik.http.routers.api-${RANDOM_UNIQUE_KEY}.tls.domains[0].sans=*.${DOMAIN_NAME}
+      - traefik.http.routers.api-${RANDOM_UNIQUE_KEY}.tls.certresolver=sample
+
+  client:
+    labels:
+      - traefik.http.routers.client-${RANDOM_UNIQUE_KEY}.entrypoints=web-secure
+      - traefik.http.routers.client-${RANDOM_UNIQUE_KEY}.rule=Host(`${DOMAIN_NAME}`)
+      - traefik.http.routers.client-${RANDOM_UNIQUE_KEY}.tls=true
+      - traefik.http.routers.client-${RANDOM_UNIQUE_KEY}.tls.domains[0].main=${DOMAIN_NAME}
+      - traefik.http.routers.client-${RANDOM_UNIQUE_KEY}.tls.domains[0].sans=*.${DOMAIN_NAME}
+      - traefik.http.routers.client-${RANDOM_UNIQUE_KEY}.tls.certresolver=sample
+
+  mercure:
+    labels:
+      - traefik.http.routers.mercure-${RANDOM_UNIQUE_KEY}.entrypoints=web-secure
+      - traefik.http.routers.mercure-${RANDOM_UNIQUE_KEY}.rule=Host(`mercure.${DOMAIN_NAME}`)
+      - traefik.http.routers.mercure-${RANDOM_UNIQUE_KEY}.tls=true
+      - traefik.http.routers.mercure-${RANDOM_UNIQUE_KEY}.tls.domains[0].main=${DOMAIN_NAME}
+      - traefik.http.routers.mercure-${RANDOM_UNIQUE_KEY}.tls.domains[0].sans=*.${DOMAIN_NAME}
+      - traefik.http.routers.mercure-${RANDOM_UNIQUE_KEY}.tls.certresolver=sample
+

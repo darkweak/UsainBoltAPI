@@ -1,0 +1,135 @@
+version: '3.4'
+
+x-cache:
+  &cache
+  cache_from:
+    - ${CONTAINER_REGISTRY_BASE}/php
+    - ${CONTAINER_REGISTRY_BASE}/nginx
+    - ${CONTAINER_REGISTRY_BASE}/varnish
+
+x-network:
+  &network
+  networks:
+    - api_platform_network
+
+services:
+  php:
+    build:
+      context: ./api
+      target: api_platform_php
+      <<: *cache
+    image: ${PHP_IMAGE:-quay.io/api-platform/php}
+    environment:
+      # You should remove these variables from .env into api folder
+      - TRUSTED_HOSTS=^(((${SUBDOMAINS_LIST}\.)?${DOMAIN_NAME})|api)$$
+      - CORS_ALLOW_ORIGIN=^${HTTP_OR_SSL}(${SUBDOMAINS_LIST}.)?${DOMAIN_NAME}$$
+      - DATABASE_URL=postgres://${DB_USER}:${DB_PASS}@db/${DB_NAME}
+      - MERCURE_SUBSCRIBE_URL=http://mercure/.well-known/mercure
+      - MERCURE_PUBLISH_URL=http://mercure/.well-known/mercure
+      - MERCURE_JWT_TOKEN=${MERCURE_JWT_TOKEN}
+    healthcheck:
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 30s
+    depends_on:
+      - db
+    volumes:
+      - ./api:/srv/api:rw,cached
+      - ./api/docker/php/conf.d/api-platform.dev.ini:/usr/local/etc/php/conf.d/api-platform.ini
+      - ./certs:/certs:ro
+    <<: *network
+
+  api:
+    build:
+      context: ./api
+      target: api_platform_nginx
+      <<: *cache
+    image: ${NGINX_IMAGE:-quay.io/api-platform/nginx}
+    depends_on:
+      - php
+    expose:
+      - 80
+    volumes:
+      - ./api/public:/srv/api/public:ro
+    <<: *network
+
+  vulcain:
+    image: dunglas/vulcain
+    environment:
+      - CERT_FILE=/certs/localhost.crt
+      - KEY_FILE=/certs/localhost.key
+      - UPSTREAM=http://api
+    depends_on:
+      - api
+    volumes:
+      - ./certs:/certs:ro
+    expose:
+      - 443
+    <<: *network
+
+  db:
+    image: postgres:12-alpine
+    environment:
+      - POSTGRES_DB=${DB_NAME}
+      - POSTGRES_PASSWORD=${DB_PASS}
+      - POSTGRES_USER=${DB_USER}
+    volumes:
+      - db-data:/var/lib/postgresql/data:rw
+    <<: *network
+
+  mercure:
+    image: dunglas/mercure
+    environment:
+#      - ACME_HOSTS=${DOMAIN_NAME}
+#      - CERT_FILE=/certs/localhost.crt
+#      - KEY_FILE=/certs/localhost.key
+      - JWT_KEY=${JWT_KEY}
+      - ALLOW_ANONYMOUS=1
+      - USE_FORWARDED_HEADERS=true
+      - CORS_ALLOWED_ORIGINS=*
+      - READ_TIMEOUT=0s
+      - WRITE_TIMEOUT=0s
+      - PUBLISH_ALLOWED_ORIGINS=*
+    volumes:
+      - ./certs:/certs:ro
+    <<: *network
+
+  client:
+    build:
+      context: ./client
+      target: api_platform_client_development
+      cache_from:
+        - ${CLIENT_IMAGE:-quay.io/api-platform/client}
+    image: ${CLIENT_IMAGE:-quay.io/api-platform/client}
+    tty: true
+    environment:
+      - API_PLATFORM_CLIENT_GENERATOR_ENTRYPOINT=http://api
+      - API_PLATFORM_CLIENT_GENERATOR_OUTPUT=src
+      # You should remove this variable from .env into client folder
+      - REACT_APP_API_ENTRYPOINT=${HTTP_OR_SSL}api.${DOMAIN_NAME}
+    volumes:
+      - ./client:/usr/src/client:rw,cached
+    <<: *network
+
+  admin:
+    build:
+      context: ./admin
+      target: api_platform_admin_development
+      cache_from:
+        - ${ADMIN_IMAGE:-quay.io/api-platform/admin}
+    image: ${ADMIN_IMAGE:-quay.io/api-platform/admin}
+    tty: true
+    environment:
+      # You should remove this variable from .env into client folder
+      - REACT_APP_API_ENTRYPOINT=${HTTP_OR_SSL}api.${DOMAIN_NAME}
+    volumes:
+      - ./admin:/usr/src/admin:rw,cached
+    <<: *network
+
+volumes:
+  db-data: {}
+
+networks:
+  api_platform_network:
+    external: true
