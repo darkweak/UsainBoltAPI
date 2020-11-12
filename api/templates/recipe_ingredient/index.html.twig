@@ -1,0 +1,35 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}RecipeIngredient index{% endblock %}
+
+{% block body %}
+    <h1>RecipeIngredient index</h1>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Quantity</th>
+                <th>actions</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for recipe_ingredient in recipe_ingredients %}
+            <tr>
+                <td>{{ recipe_ingredient.id }}</td>
+                <td>{{ recipe_ingredient.quantity }}</td>
+                <td>
+                    <a href="{{ path('recipe_ingredient_show', {'id': recipe_ingredient.id}) }}">show</a>
+                    <a href="{{ path('recipe_ingredient_edit', {'id': recipe_ingredient.id}) }}">edit</a>
+                </td>
+            </tr>
+        {% else %}
+            <tr>
+                <td colspan="3">no records found</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    <a href="{{ path('recipe_ingredient_new') }}">Create new</a>
+{% endblock %}

@@ -15,8 +15,8 @@ use Doctrine\ORM\Mapping as ORM;
 class Ingredient
 {
     /**
-     * @ORM\Id()
-     * @ORM\GeneratedValue()
+     * @ORM\Id
+     * @ORM\GeneratedValue
      * @ORM\Column(type="integer")
      */
     private $id;
@@ -79,8 +79,7 @@ class Ingredient
 
     public function removeRecipeIngredient(RecipeIngredient $recipeIngredient): self
     {
-        if ($this->recipeIngredients->contains($recipeIngredient)) {
-            $this->recipeIngredients->removeElement($recipeIngredient);
+        if ($this->recipeIngredients->removeElement($recipeIngredient)) {
             // set the owning side to null (unless already changed)
             if ($recipeIngredient->getIngredient() === $this) {
                 $recipeIngredient->setIngredient(null);
@@ -110,8 +109,7 @@ class Ingredient
 
     public function removeStep(Step $step): self
     {
-        if ($this->steps->contains($step)) {
-            $this->steps->removeElement($step);
+        if ($this->steps->removeElement($step)) {
             $step->removeIngredient($this);
         }
 

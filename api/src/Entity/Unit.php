@@ -15,8 +15,8 @@ use Doctrine\ORM\Mapping as ORM;
 class Unit
 {
     /**
-     * @ORM\Id()
-     * @ORM\GeneratedValue()
+     * @ORM\Id
+     * @ORM\GeneratedValue
      * @ORM\Column(type="integer")
      */
     private $id;
@@ -73,8 +73,7 @@ class Unit
 
     public function removeRecipeIngredient(RecipeIngredient $recipeIngredient): self
     {
-        if ($this->recipeIngredients->contains($recipeIngredient)) {
-            $this->recipeIngredients->removeElement($recipeIngredient);
+        if ($this->recipeIngredients->removeElement($recipeIngredient)) {
             // set the owning side to null (unless already changed)
             if ($recipeIngredient->getUnit() === $this) {
                 $recipeIngredient->setUnit(null);

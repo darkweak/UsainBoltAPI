@@ -9,14 +9,29 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
- * @ApiResource()
+ * @ApiResource(
+ *      security="is_granted('IS_AUTHENTICATED_FULLY')",
+ *      collectionOperations={
+ *          "get"={"security"="is_granted('IS_AUTHENTICATED_ANONYMOUSLY')"},
+ *          "post",
+ *      },
+ *      itemOperations={
+ *          "get"={
+ *              "controller"=NotFoundAction::class,
+ *              "read"=false,
+ *              "output"=false,
+ *          },
+ *          "patch",
+ *          "put"
+ *      }
+ * )
  * @ORM\Entity(repositoryClass=StepRepository::class)
  */
 class Step
 {
     /**
-     * @ORM\Id()
-     * @ORM\GeneratedValue()
+     * @ORM\Id
+     * @ORM\GeneratedValue
      * @ORM\Column(type="integer")
      */
     private $id;
@@ -90,9 +105,7 @@ class Step
 
     public function removeIngredient(Ingredient $ingredient): self
     {
-        if ($this->ingredients->contains($ingredient)) {
-            $this->ingredients->removeElement($ingredient);
-        }
+        $this->ingredients->removeElement($ingredient);
 
         return $this;
     }

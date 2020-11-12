@@ -9,14 +9,25 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
- * @ApiResource()
+ * @ApiResource(
+ *      collectionOperations={
+ *          "get",
+ *          "post"={"security"="is_granted('IS_AUTHENTICATED_FULLY')"}
+ *      },
+ *      itemOperations={
+ *          "get",
+ *          "patch"={"security"="is_granted('ROLE_ADMIN') or user == object.author"},
+ *          "put"={"security"="is_granted('ROLE_ADMIN') or user == object.author"},
+ *          "delete"={"security"="is_granted('ROLE_ADMIN') or user == object.author"}
+ *      }
+ * )
  * @ORM\Entity(repositoryClass=RecipeRepository::class)
  */
 class Recipe
 {
     /**
-     * @ORM\Id()
-     * @ORM\GeneratedValue()
+     * @ORM\Id
+     * @ORM\GeneratedValue
      * @ORM\Column(type="integer")
      */
     private $id;
@@ -97,8 +108,7 @@ class Recipe
 
     public function removeRecipeIngredient(RecipeIngredient $recipeIngredient): self
     {
-        if ($this->recipeIngredients->contains($recipeIngredient)) {
-            $this->recipeIngredients->removeElement($recipeIngredient);
+        if ($this->recipeIngredients->removeElement($recipeIngredient)) {
             // set the owning side to null (unless already changed)
             if ($recipeIngredient->getRecipe() === $this) {
                 $recipeIngredient->setRecipe(null);
@@ -128,8 +138,7 @@ class Recipe
 
     public function removeStep(Step $step): self
     {
-        if ($this->steps->contains($step)) {
-            $this->steps->removeElement($step);
+        if ($this->steps->removeElement($step)) {
             // set the owning side to null (unless already changed)
             if ($step->getRecipe() === $this) {
                 $step->setRecipe(null);
